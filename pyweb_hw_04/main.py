@@ -1,5 +1,6 @@
 import logging
 
+from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 from threading import Thread
 
@@ -12,13 +13,36 @@ HTTP_PORT = 3000
 SOCKET_HOST = '127.0.0.1'
 SOCKET_PORT = 5000
 
-def run_http_server(port, host):
-    logger.info(f'Run HTTP server: ({port}, {host})')
-    pass
+
+class HWFramework(BaseHTTPRequestHandler):
+
+    def _do_GET(self):
+        pass
+
+    def do_POST(self):
+        pass
 
 
-def run_socket_server(port, host):
-    logger.info(f'Run Socket server: ({port}, {host})')
+def run_http_server(host, port):
+
+    address = (host, port)
+    http_server = HTTPServer(address, HWFramework)
+    logger.info(f'Created HTTP server: {address}')
+
+    try:
+        http_server.serve_forever()
+        logger.info(f'Run HTTP server')
+    except KeyboardInterrupt:
+        logger.error(f'HTTP server has stopped by user')
+    finally:
+        http_server.close()
+        logger.info(f'HTTP server closed')
+
+
+def run_socket_server(host, port):
+    address = (host, port)
+
+    logger.info(f'Run Socket server: {address}')
     pass    
 
 
@@ -47,10 +71,10 @@ if __name__ == '__main__':
 
     logger.info(f'Start "PyWeb-homework-04')
 
-    server = Thread(name='HTTP server', target=run_http_server, args=(HTTP_PORT, HTTP_HOST))
+    server = Thread(name='HTTP server', target=run_http_server, args=(HTTP_HOST, HTTP_PORT))
     server.start()
     
-    server_socket = Thread(name='Socket server', target=run_socket_server, args=(SOCKET_PORT, SOCKET_HOST))
+    server_socket = Thread(name='Socket server', target=run_socket_server, args=(SOCKET_HOST, SOCKET_PORT))
     server_socket.start()
 
 
