@@ -1,5 +1,6 @@
 import logging
 import mimetypes
+import socket
 import urllib
 
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -96,26 +97,39 @@ class HWFramework(BaseHTTPRequestHandler):
 
 
 def run_http_server(host, port):
-
     address = (host, port)
-    http_server = HTTPServer(address, HWFramework)
+
+    server = HTTPServer(address, HWFramework)
     logger.info(f'Created HTTP server: {address}')
 
     try:
-        http_server.serve_forever()
+        server.serve_forever()
         logger.info(f'Run HTTP server')
     except KeyboardInterrupt:
         logger.error(f'HTTP server has stopped by user')
     finally:
-        http_server.close()
+        server.close()
         logger.info(f'HTTP server closed')
 
 
 def run_socket_server(host, port):
     address = (host, port)
 
+    server = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+    server.bind(address)
     logger.info(f'Run Socket server: {address}')
-    pass    
+
+    try:
+        while True:
+            msg, address = server.recvfrom(BUFFER_SIZE)
+            logger.debug(f'Received from: {address}: {msg}')
+    except KeyboardInterrupt:
+        logger.error(f'Socket server has stopped by user')
+    finally:
+        server.close()
+        logger.info(f'Socket server closed')
+        
+       
 
 
 if __name__ == '__main__':
