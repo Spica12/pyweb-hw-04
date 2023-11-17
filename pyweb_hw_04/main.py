@@ -19,6 +19,7 @@ SOCKET_PORT = 5000
 class HWFramework(BaseHTTPRequestHandler):
 
     def do_GET(self):
+        logger.info(f'Starting function GET')
 
         route = urllib.parse.urlparse(self.path)
         logger.debug(f'path: {route.path}')
@@ -40,11 +41,28 @@ class HWFramework(BaseHTTPRequestHandler):
                 else:
                     self.send_html('error.html', status_code=400)
 
+        logger.info(f'Finished function GET')
+
+
     def do_POST(self):
-        pass
+        logger.info(f'Starting function POST')
+        # logger.debug(f'Headers: {self.headers}')
+
+        size = self.headers.get('Content-Length')
+        logger.debug(f'Content-Length: {size}')
+
+        data = self.rfile.read(int(size))
+        logger.debug(f'Data: {data}')
+
+        self.send_response(302)
+        self.send_header(keyword='Location', value='/message')
+        self.end_headers()
+
+        logger.info(f'Finished function POST')
+        
 
     def send_html(self, filename, status_code=200):
-        logger.debug(f'Start sending: {filename}')
+        logger.info(f'Start sending: {filename}')
 
         self.send_response(status_code)
         self.send_header('Content-Type', 'text/html')
@@ -53,10 +71,10 @@ class HWFramework(BaseHTTPRequestHandler):
         with open(filename, 'rb') as file:
             self.wfile.write(file.read())
         
-        logger.debug(f'Finished sending: {filename}, status: {status_code}')
+        logger.info(f'Finished sending: {filename}, status: {status_code}')
 
     def send_static(self, filename, status_code=200):
-        logger.debug(f'Start sending: {filename}')
+        logger.info(f'Start sending: {filename}')
 
         self.send_response(status_code)
 
@@ -74,7 +92,7 @@ class HWFramework(BaseHTTPRequestHandler):
         with open(filename, 'rb') as file:
             self.wfile.write(file.read())
 
-        logger.debug(f'Finished sending: {filename}, status: {status_code}')
+        logger.info(f'Finished sending: {filename}, status: {status_code}')
 
 
 def run_http_server(host, port):
