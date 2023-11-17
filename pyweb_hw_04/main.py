@@ -1,4 +1,6 @@
 import logging
+import mimetypes
+import urllib
 
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
@@ -8,7 +10,7 @@ from threading import Thread
 BASE_DIR = Path()
 LOG_FILE_NAME = 'logs.txt'
 BUFFER_SIZE = 1024
-HTTP_HOST = 'localhost'     # TODO Change to '0.0.0.0' before creating docker image
+HTTP_HOST = '192.168.0.30'     # TODO Change to '0.0.0.0' before creating docker image
 HTTP_PORT = 3000
 SOCKET_HOST = '127.0.0.1'
 SOCKET_PORT = 5000
@@ -16,11 +18,63 @@ SOCKET_PORT = 5000
 
 class HWFramework(BaseHTTPRequestHandler):
 
-    def _do_GET(self):
-        pass
+    def do_GET(self):
+
+        route = urllib.parse.urlparse(self.path)
+        logger.debug(f'path: {route.path}')
+
+        match route.path:
+
+            case '/':
+                self.send_html('index.html')
+
+            case '/message':
+                self.send_html('message.html')
+
+            case _:
+
+                file = BASE_DIR.joinpath(route.path[1:])
+                logger.debug(f'file: {file}')
+                if file.exists():
+                    self.send_static(file)
+                else:
+                    self.send_html('error.html', status_code=400)
 
     def do_POST(self):
         pass
+
+    def send_html(self, filename, status_code=200):
+        logger.debug(f'Start sending: {filename}')
+
+        self.send_response(status_code)
+        self.send_header('Content-Type', 'text/html')
+        self.end_headers()
+
+        with open(filename, 'rb') as file:
+            self.wfile.write(file.read())
+        
+        logger.debug(f'Finished sending: {filename}, status: {status_code}')
+
+    def send_static(self, filename, status_code=200):
+        logger.debug(f'Start sending: {filename}')
+
+        self.send_response(status_code)
+
+        mime_types, *_ = mimetypes.guess_type(filename)
+
+        if mime_types:
+            self.send_header('Content-Type', mime_types)
+            logger.debug(f'Content-Type: {mime_types}')
+        else:
+            self.send_header('Content-Type', 'text/plain')
+            logger.debug(f'Content-Type: text/plain')
+
+        self.end_headers()
+
+        with open(filename, 'rb') as file:
+            self.wfile.write(file.read())
+
+        logger.debug(f'Finished sending: {filename}, status: {status_code}')
 
 
 def run_http_server(host, port):
