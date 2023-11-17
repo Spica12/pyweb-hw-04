@@ -1,3 +1,0 @@
-2023-11-17 17:23:36,867 - DEBUG - MainThread -             <module>(45) - Start "PyWeb-homework-04
-2023-11-17 17:23:36,868 - DEBUG - MainThread -      run_http_server(11) - Run HTTP server
-2023-11-17 17:23:36,868 - DEBUG - MainThread -    run_socket_server(16) - Run Socket server
