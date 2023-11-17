@@ -1,6 +1,7 @@
 import logging
 
 from pathlib import Path
+from threading import Thread
 
 
 BASE_DIR = Path()
@@ -11,13 +12,13 @@ HTTP_PORT = 3000
 SOCKET_HOST = '127.0.0.1'
 SOCKET_PORT = 5000
 
-def run_http_server():
-    logger.info('Run HTTP server')
+def run_http_server(port, host):
+    logger.info(f'Run HTTP server: ({port}, {host})')
     pass
 
 
-def run_socket_server():
-    logger.info('Run Socket server')
+def run_socket_server(port, host):
+    logger.info(f'Run Socket server: ({port}, {host})')
     pass    
 
 
@@ -25,7 +26,7 @@ if __name__ == '__main__':
     logger = logging.getLogger('pylog')
     logger.setLevel(logging.DEBUG)
 
-    formatter = logging.Formatter('%(asctime)s - %(levelname)5s - %(threadName)s - %(funcName)20s(%(lineno)d) - %(message)s')
+    formatter = logging.Formatter('%(asctime)s - %(levelname)5s - %(threadName)15s - %(funcName)20s(%(lineno)d) - %(message)s')
 
     path_logs = BASE_DIR / LOG_FILE_NAME
 
@@ -46,8 +47,13 @@ if __name__ == '__main__':
 
     logger.info(f'Start "PyWeb-homework-04')
 
-    run_http_server()
-    run_socket_server()
+    server = Thread(name='HTTP server', target=run_http_server, args=(HTTP_PORT, HTTP_HOST))
+    server.start()
+    
+    server_socket = Thread(name='Socket server', target=run_socket_server, args=(SOCKET_PORT, SOCKET_HOST))
+    server_socket.start()
+
+
 
 
 
