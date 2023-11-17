@@ -8,12 +8,12 @@ LOG_FILE_NAME = 'logs.txt'
 
 
 def run_http_server():
-    logger.debug('Run HTTP server')
+    logger.info('Run HTTP server')
     pass
 
 
 def run_socket_server():
-    logger.debug('Run Socket server')
+    logger.info('Run Socket server')
     pass    
 
 
@@ -40,7 +40,7 @@ if __name__ == '__main__':
     logger.addHandler(fh)
     logger.addHandler(ch)
 
-    logger.debug(f'Start "PyWeb-homework-04')
+    logger.info(f'Start "PyWeb-homework-04')
 
     run_http_server()
     run_socket_server()
