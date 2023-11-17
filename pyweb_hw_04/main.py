@@ -5,7 +5,11 @@ from pathlib import Path
 
 BASE_DIR = Path()
 LOG_FILE_NAME = 'logs.txt'
-
+BUFFER_SIZE = 1024
+HTTP_HOST = 'localhost'     # TODO Change to '0.0.0.0' before creating docker image
+HTTP_PORT = 3000
+SOCKET_HOST = '127.0.0.1'
+SOCKET_PORT = 5000
 
 def run_http_server():
     logger.info('Run HTTP server')
