@@ -99,7 +99,7 @@ def save_data_from_form(data):
     """
     input: b'username=<data>&message=<some+text>'
     """
-    logger.info(f"Start saving data to storage: {data}")
+    logger.info(f"Start saving data to storage")
 
     parse_data = urllib.parse.unquote_plus(data.decode())
     logger.debug(f"parse data: {parse_data}")
@@ -112,15 +112,28 @@ def save_data_from_form(data):
         }
         logger.debug(f"parse dict: {parse_dict}")
 
-        with open(storage_path, "w", encoding="utf-8") as file:
-            json.dump(parse_dict, file, ensure_ascii=False, indent=4)
+        storage_list = []
+
+        if storage_path.is_file():
+            logger.debug(f"File {storage_path} exists")
+            with open(storage_path, 'r', encoding="utf-8") as file:
+                temp_list = json.load(file)
+                storage_list.extend(temp_list)
+        else:
+            logger.debug(f"File {storage_path} doesn't exist")
+        
+        storage_list.append(parse_dict)
+
+        with open(storage_path, "w", encoding="utf-8") as file:            
+            json.dump(storage_list, file, ensure_ascii=False, indent=4)
+
 
     except ValueError as e:
         logger.error(e)
     except OSError as e:
         logger.error(e)
 
-    logger.info(f"Data: {data} saved to {storage_path}")
+    logger.info(f"Data has saved to {storage_path}")
 
 
 def run_http_server(host, port):
@@ -163,7 +176,7 @@ if __name__ == "__main__":
     logger.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter(
-        "%(asctime)s - %(levelname)5s - %(threadName)15s - %(funcName)20s(%(lineno)3d) - %(message)s"
+        "%(asctime)s - %(threadName)15s - %(funcName)20s(%(lineno)3d) - %(levelname)5s - %(message)s"
     )
 
     path_logs = BASE_DIR / LOG_FILE_NAME
@@ -173,7 +186,7 @@ if __name__ == "__main__":
         file.write("")
 
     fh = logging.FileHandler(filename=path_logs)
-    fh.setLevel(logging.DEBUG)
+    fh.setLevel(logging.INFO)
     fh.setFormatter(formatter)
 
     ch = logging.StreamHandler()
