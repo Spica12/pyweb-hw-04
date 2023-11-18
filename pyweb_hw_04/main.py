@@ -1,8 +1,8 @@
+import json
 import logging
 import mimetypes
 import socket
 import urllib
-import json
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
@@ -177,11 +177,7 @@ if __name__ == "__main__":
         "%(asctime)s - %(threadName)15s - %(funcName)20s(%(lineno)3d) - %(levelname)5s - %(message)s"
     )
 
-    path_logs = BASE_DIR / LOG_FILE_NAME
-
-    # TODO Щоб при кожному запуску файл з логами перезаписувався
-    with open(path_logs, "w") as file:
-        file.write("")
+    path_logs = BASE_DIR / STORAGE_DIR / LOG_FILE_NAME
 
     fh = logging.FileHandler(filename=path_logs)
     fh.setLevel(logging.INFO)
