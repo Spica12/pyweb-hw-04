@@ -2,12 +2,15 @@ import logging
 import mimetypes
 import socket
 import urllib
+import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from threading import Thread
 
 BASE_DIR = Path()
+STORAGE_DIR = "storage"
 LOG_FILE_NAME = "logs.txt"
+STORAGE_FILE = "data.json"
 BUFFER_SIZE = 1024
 HTTP_HOST = "192.168.0.30"  # TODO Change to '0.0.0.0' before creating docker image
 HTTP_PORT = 3000
@@ -46,6 +49,11 @@ class HWFramework(BaseHTTPRequestHandler):
 
         data = self.rfile.read(int(size))
         logger.debug(f"Data: {data}")
+
+        socket_client = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+        socket_client.sendto(data, (SOCKET_HOST, SOCKET_PORT))
+        socket_client.close()
+        logger.debug("Send data to socket server")
 
         self.send_response(302)
         self.send_header(keyword="Location", value="/message")
@@ -87,6 +95,34 @@ class HWFramework(BaseHTTPRequestHandler):
         logger.info(f"Finished sending: {filename}, status: {status_code}")
 
 
+def save_data_from_form(data):
+    """
+    input: b'username=<data>&message=<some+text>'
+    """
+    logger.info(f"Start saving data to storage: {data}")
+
+    parse_data = urllib.parse.unquote_plus(data.decode())
+    logger.debug(f"parse data: {parse_data}")
+
+    storage_path = BASE_DIR / STORAGE_DIR / STORAGE_FILE
+
+    try:
+        parse_dict = {
+            key: value for key, value in [el.split("=") for el in parse_data.split("&")]
+        }
+        logger.debug(f"parse dict: {parse_dict}")
+
+        with open(storage_path, "w", encoding="utf-8") as file:
+            json.dump(parse_dict, file, ensure_ascii=False, indent=4)
+
+    except ValueError as e:
+        logger.error(e)
+    except OSError as e:
+        logger.error(e)
+
+    logger.info(f"Data: {data} saved to {storage_path}")
+
+
 def run_http_server(host, port):
     address = (host, port)
 
@@ -114,6 +150,7 @@ def run_socket_server(host, port):
         while True:
             msg, address = server.recvfrom(BUFFER_SIZE)
             logger.debug(f"Received from: {address}: {msg}")
+            save_data_from_form(msg)
     except KeyboardInterrupt:
         logger.error(f"Socket server has stopped by user")
     finally:
@@ -126,7 +163,7 @@ if __name__ == "__main__":
     logger.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter(
-        "%(asctime)s - %(levelname)5s - %(threadName)15s - %(funcName)20s(%(lineno)d) - %(message)s"
+        "%(asctime)s - %(levelname)5s - %(threadName)15s - %(funcName)20s(%(lineno)3d) - %(message)s"
     )
 
     path_logs = BASE_DIR / LOG_FILE_NAME
