@@ -3,6 +3,7 @@ import mimetypes
 import socket
 import urllib
 import json
+from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from threading import Thread
@@ -96,37 +97,34 @@ class HWFramework(BaseHTTPRequestHandler):
 
 
 def save_data_from_form(data):
-    """
-    input: b'username=<data>&message=<some+text>'
-    """
     logger.info(f"Start saving data to storage")
+
+    current_date = str(datetime.now())
+    logger.debug(f"Current date: {current_date}")
 
     parse_data = urllib.parse.unquote_plus(data.decode())
     logger.debug(f"parse data: {parse_data}")
 
     storage_path = BASE_DIR / STORAGE_DIR / STORAGE_FILE
-
     try:
         parse_dict = {
             key: value for key, value in [el.split("=") for el in parse_data.split("&")]
         }
         logger.debug(f"parse dict: {parse_dict}")
 
-        storage_list = []
+        storage_dict = {}
 
         if storage_path.is_file():
             logger.debug(f"File {storage_path} exists")
-            with open(storage_path, 'r', encoding="utf-8") as file:
-                temp_list = json.load(file)
-                storage_list.extend(temp_list)
+            with open(storage_path, "r", encoding="utf-8") as file:
+                storage_dict = json.load(file)
         else:
             logger.debug(f"File {storage_path} doesn't exist")
-        
-        storage_list.append(parse_dict)
 
-        with open(storage_path, "w", encoding="utf-8") as file:            
-            json.dump(storage_list, file, ensure_ascii=False, indent=4)
+        storage_dict[current_date] = parse_dict
 
+        with open(storage_path, "w", encoding="utf-8") as file:
+            json.dump(storage_dict, file, ensure_ascii=False, indent=4)
 
     except ValueError as e:
         logger.error(e)
